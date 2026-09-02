@@ -40,13 +40,16 @@ int (*BASS_ChannelSet3DAttributes) (uint32_t, int, float, float, int, int, float
 int (*BASS_ChannelSet3DPosition) (uint32_t, const BASS_3DVECTOR*, const BASS_3DVECTOR*, const BASS_3DVECTOR*);
 int (*BASS_SetVolume) (float);
 
+bool g_bassLoaded = false;
+
 void LoadBassLibrary()
 {
 	spdlog::info("Loading BASS library..");
-    void* v0 = dlopen("libBASS.so", RTLD_LAZY);
+    void* v0 = dlopen("libbass.so", RTLD_LAZY);
 
 	if (!v0) {
 		spdlog::info(dlerror());
+		g_bassLoaded = false;
 		return;
 	}
 
@@ -86,4 +89,6 @@ void LoadBassLibrary()
 	BASS_ChannelSet3DAttributes = (int (*)(uint32_t, int, float, float, int, int, float))dlsym(v0, "BASS_ChannelSet3DAttributes");
 	BASS_ChannelSet3DPosition = (int (*)(uint32_t, const BASS_3DVECTOR*, const BASS_3DVECTOR*, const BASS_3DVECTOR*))dlsym(v0, "BASS_ChannelSet3DPosition");
 	BASS_SetVolume = (int (*)(float))dlsym(v0, "BASS_SetVolume");
+
+	g_bassLoaded = true;
 }

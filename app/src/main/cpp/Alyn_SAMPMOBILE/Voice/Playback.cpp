@@ -29,6 +29,11 @@ bool Playback::Init() noexcept
 
 	Playback::initStatus = true;
 
+	if (!g_bassLoaded) {
+		LogVoice("[sv:err:bassinithook] : BASS library not loaded, skipping audio init");
+		return false;
+	}
+
 	if (!Playback::BassInitHookFunc()) {
 		LogVoice("[sv:err:bassinithook] : failed to initializing bass");
 		return false;
