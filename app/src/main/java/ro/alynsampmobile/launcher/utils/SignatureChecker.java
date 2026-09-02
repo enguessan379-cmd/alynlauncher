@@ -1,0 +1,53 @@
+package ro.alynsampmobile.launcher.utils;
+
+import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.Signature;
+import android.util.Log;
+
+import com.joom.paranoid.Obfuscate;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+@Obfuscate
+public class SignatureChecker {
+    private static final String EXPECTED_SIGNATURE = "89cb277c5cd1a90145acb3c2a89cea995bfbd3b3e5ebe2b180d2248efc4aa041";
+
+    public static native boolean nativeCheckSignature(String computedSignature);
+
+    public static boolean isSignatureValid(Context ctx, String packageName) {
+        // Signature check disabled: EXPECTED_SIGNATURE and the native check only
+        // match the original author's release key, so any self-built/rebranded
+        // APK always failed here and got silently finish()'d right after the
+        // toast in SAMP.onCreate. This is our own rebrand, so the check is
+        // skipped entirely instead of calling the native function.
+        return true;
+    }
+
+    private static PackageInfo getPackageInfo(Context ctx, String packageName) throws NameNotFoundException {
+        PackageManager pm = ctx.getPackageManager();
+        return pm.getPackageInfo(packageName, PackageManager.GET_SIGNATURES);
+    }
+
+    private static String getSignature(PackageInfo packageInfo) throws NoSuchAlgorithmException {
+        Signature[] signatures = packageInfo.signatures;
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        for (Signature signature : signatures) {
+            byte[] signatureBytes = signature.toByteArray();
+            byte[] digest = md.digest(signatureBytes);
+            return byteArrayToHexString(digest);
+        }
+        return null;
+    }
+
+    private static String byteArrayToHexString(byte[] array) {
+        StringBuilder sb = new StringBuilder(array.length * 2);
+        for (byte b : array) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
+    }
+}

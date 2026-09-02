@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "397784451718",
+    "project_id": "alyn-samp-launcher",
+    "storage_bucket": "alyn-samp-launcher.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:397784451718:android:e4c421a74cae298fc8df07",
+        "android_client_info": {
+          "package_name": "ro.alynsampmobile.launcher"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBn3GdSdmgCEXcGEJx56GGXPkom6zMG1ac"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
