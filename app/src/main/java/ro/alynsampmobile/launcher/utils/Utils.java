@@ -388,6 +388,9 @@ public class Utils {
             jSONObject.getJSONObject("client").getJSONObject("settings").put("chat_sizey", settings_prefs.getInt("chat_sizey", 150));
             jSONObject.getJSONObject("client").getJSONObject("settings").put("font_size", settings_prefs.getFloat("font_size", 26.0f));
 
+            if (file.getParentFile() != null) {
+                file.getParentFile().mkdirs();
+            }
             file.createNewFile();
 
             writeJSONToFile(file, jSONObject);

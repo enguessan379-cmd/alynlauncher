@@ -295,7 +295,15 @@ public class UpdateService extends Service {
      */
     private void checkFullDataUpdate() {
         String installedVersion = getSharedPreferences("samp_settings", Context.MODE_PRIVATE).getString("full_data_version", "");
-        mFullDataUpdateRequired = mUpdateVersion == null || !mUpdateVersion.equals(installedVersion);
+        boolean versionMatches = mUpdateVersion != null && mUpdateVersion.equals(installedVersion);
+
+        // The version pref alone isn't reliable: files can be deleted, a previous extraction
+        // can fail partway, or storage can be wiped externally while the pref survives.
+        // Verify a key file is actually present on disk (and non-empty) before trusting it.
+        File sampTexdbCheck = new File(getExternalFilesDir(null), "texdb/samp.etc.toc");
+        boolean filesPresent = sampTexdbCheck.exists() && sampTexdbCheck.length() > 0;
+
+        mFullDataUpdateRequired = !versionMatches || !filesPresent;
     }
 
     /**
