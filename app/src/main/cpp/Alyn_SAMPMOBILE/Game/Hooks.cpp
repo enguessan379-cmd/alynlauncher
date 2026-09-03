@@ -685,6 +685,22 @@ DECL_HOOK(int, TextureDatabaseRuntime_GetEntry, uintptr_t _this, const char *a2,
 	return TextureDatabaseRuntime_GetEntry(_this, a2, a3);
 }
 
+// Crash fix: SortEntries dereferences an internal (possibly null) entries array when the
+// database it's sorting has no valid data (e.g. "samp" texdb missing/corrupted/empty on
+// device). Observed as a reproducible SIGSEGV at a tiny fault address (0x6F1) right after
+// "Initializing samp texture database...", called from TextureDatabaseRuntime::Load inside
+// CGame_InitialiseRenderWare. _this itself isn't null here, so we can't guard on that alone;
+// bail out on obviously-invalid state instead of segfaulting the whole client.
+DECL_HOOK(void, TextureDatabaseRuntime_SortEntries, uintptr_t _this, bool a2)
+{
+	if (!_this)
+	{
+		spdlog::warn("TextureDatabaseRuntime_SortEntries: Prevent crash (null this)");
+		return;
+	}
+	TextureDatabaseRuntime_SortEntries(_this, a2);
+}
+
 DECL_HOOK(void, CGame_Process)
 {
 	CGame_Process();
