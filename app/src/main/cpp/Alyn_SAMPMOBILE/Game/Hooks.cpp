@@ -253,7 +253,7 @@ DECL_HOOK(int, CGame_InitialiseRenderWare)
 	spdlog::info("Initializing samp texture database...");
 
 	int result = CGame_InitialiseRenderWare();
-	sa::TextureDatabaseRuntime::Load("samp", false, sa::DF_ETC);
+	sa::TextureDatabaseRuntime::Load("samp", false, sa::DF_UNC);
 	Client::initializeUI();
 	return result;
 }
