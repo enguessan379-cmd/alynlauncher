@@ -253,7 +253,18 @@ DECL_HOOK(int, CGame_InitialiseRenderWare)
 	spdlog::info("Initializing samp texture database...");
 
 	int result = CGame_InitialiseRenderWare();
+<<<<<<< HEAD
 	sa::TextureDatabaseRuntime::Load("samp", false, sa::DF_UNC);
+=======
+
+	// Removed: TextureDatabaseRuntime::Load("samp", false, sa::DF_UNC) here was
+	// an eager preload that crashes (null pointer deref inside its own
+	// SortEntries) on some devices/data packs. It's redundant anyway: samp.txd
+	// textures (voice/AFK icons etc.) are already loaded safely and lazily via
+	// the CTxdStore_TxdStoreFindCB hook above, which guards against exactly
+	// this with its `if (!registered.dataPtr) break;` check.
+
+>>>>>>> 613d651 (fix: crash SIGSEGV a la connexion (retrait du preload texture samp redondant))
 	Client::initializeUI();
 	return result;
 }
