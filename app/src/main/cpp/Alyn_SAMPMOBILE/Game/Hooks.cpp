@@ -254,12 +254,12 @@ DECL_HOOK(int, CGame_InitialiseRenderWare)
 
 	int result = CGame_InitialiseRenderWare();
 
-	// Removed: TextureDatabaseRuntime::Load("samp", false, sa::DF_UNC) here was
-	// an eager preload that crashes (null pointer deref inside its own
-	// SortEntries) on some devices/data packs. It's redundant anyway: samp.txd
-	// textures (voice/AFK icons etc.) are already loaded safely and lazily via
-	// the CTxdStore_TxdStoreFindCB hook above, which guards against exactly
-	// this with its `if (!registered.dataPtr) break;` check.
+	// Was crashing (null pointer deref inside SortEntries) because it was
+	// called with sa::DF_UNC (uncompressed, value 0), but texdb/samp is
+	// stored in ETC-compressed format on Android. Loading it as UNC made the
+	// engine misparse the file's internal layout. Fixed to sa::DF_ETC (5),
+	// confirmed against a working reference launcher's hook.
+	sa::TextureDatabaseRuntime::Load("samp", false, sa::DF_ETC);
 
 	Client::initializeUI();
 	return result;
@@ -690,22 +690,6 @@ DECL_HOOK(int, TextureDatabaseRuntime_GetEntry, uintptr_t _this, const char *a2,
 		return -1;
 	}
 	return TextureDatabaseRuntime_GetEntry(_this, a2, a3);
-}
-
-// Crash fix: SortEntries dereferences an internal (possibly null) entries array when the
-// database it's sorting has no valid data (e.g. "samp" texdb missing/corrupted/empty on
-// device). Observed as a reproducible SIGSEGV at a tiny fault address (0x6F1) right after
-// "Initializing samp texture database...", called from TextureDatabaseRuntime::Load inside
-// CGame_InitialiseRenderWare. _this itself isn't null here, so we can't guard on that alone;
-// bail out on obviously-invalid state instead of segfaulting the whole client.
-DECL_HOOK(void, TextureDatabaseRuntime_SortEntries, uintptr_t _this, bool a2)
-{
-	if (!_this)
-	{
-		spdlog::warn("TextureDatabaseRuntime_SortEntries: Prevent crash (null this)");
-		return;
-	}
-	TextureDatabaseRuntime_SortEntries(_this, a2);
 }
 
 DECL_HOOK(void, CGame_Process)
