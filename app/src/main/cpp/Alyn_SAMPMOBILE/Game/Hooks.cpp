@@ -203,6 +203,11 @@ DECL_HOOK(RwTexture *, CTxdStore_TxdStoreFindCB, const char *texture_name)
 	for (const auto &texture_database : texture_databases)
 	{
 		auto database_handle = sa::TextureDatabaseRuntime::GetDatabase(texture_database.c_str());
+		if (!database_handle)
+		{
+			continue;
+		}
+
 		auto registered = sa::TextureDatabaseRuntime::registered();
 
 		if (!registered.dataPtr)
@@ -254,12 +259,15 @@ DECL_HOOK(int, CGame_InitialiseRenderWare)
 
 	int result = CGame_InitialiseRenderWare();
 
-	// Was crashing (null pointer deref inside SortEntries) because it was
-	// called with sa::DF_UNC (uncompressed, value 0), but texdb/samp is
-	// stored in ETC-compressed format on Android. Loading it as UNC made the
-	// engine misparse the file's internal layout. Fixed to sa::DF_ETC (5),
-	// confirmed against a working reference launcher's hook.
+	// texdb/samp, texdb/menu and texdb/mobile need to be explicitly loaded
+	// before CTxdStore_TxdStoreFindCB_hook's search loop can find textures in
+	// them (GetDatabase() returns an invalid handle for a database that was
+	// never Load()'ed, which crashed inside GetTexture as soon as a lookup
+	// reached "menu"/"mobile" without finding the texture in gta_int/gta3/samp
+	// first). Same DF_ETC format as confirmed for "samp".
 	sa::TextureDatabaseRuntime::Load("samp", false, sa::DF_ETC);
+	sa::TextureDatabaseRuntime::Load("menu", false, sa::DF_ETC);
+	sa::TextureDatabaseRuntime::Load("mobile", false, sa::DF_ETC);
 
 	Client::initializeUI();
 	return result;
